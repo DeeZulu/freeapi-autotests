@@ -15,7 +15,7 @@ class BaseClient:
         self.session = requests.session()
         self.base_url = settings.base_url.rstrip("/")
 
-    def _request(self, method: str, endpoint: str, **kwargs) -> Response:
+    def _request(self, method: str, endpoint: str, refresh: bool, **kwargs) -> Response:
         """
         Общий метод HTTP запроса
         :param method: Метод HTTP запроса
@@ -32,7 +32,7 @@ class BaseClient:
             logger.info(f"Params: {kwargs['params']}")
         try:
             response = self.session.request(method, url, **kwargs)
-            if response.status_code == 401 and "/refresh-token" not in endpoint:
+            if response.status_code == 401 and refresh and "/refresh-token" not in endpoint:
                 logger.warning("AccessToken истёк")
                 self.refresh_token()
                 response = self.session.request(method, url, **kwargs)
@@ -50,23 +50,27 @@ class BaseClient:
             logger.error(e)
             raise e
 
-    def auth(self, body: dict) -> UserLoginResponse:
+    def auth(self, body: dict, refresh=True) -> UserLoginResponse:
         """
-        Авторизует пользователя и сохраняет токен в сессию
+        Авторизует пользователя c сохранением токен в сессию
         :param body: Креды пользователя
+        :param refresh: Отправлять ли запрос на обновление accessToken
         :return: словарь с ответом от сервиса
         """
-        response = self._request("POST", "users/login", json=body)
+        response = self._request("POST", "users/login", refresh, json=body)
         check_status_code(response.status_code, 200)
         login_data = UserLoginResponse.model_validate(response.json())
         access_token = login_data.data.access_token
         self.session.headers.update({"Authorization": f"Bearer {access_token}"})
         return login_data
 
-    def refresh_token(self):
-        """Обновление токена"""
+    def refresh_token(self, refresh=True):
+        """
+        Обновляет access токен
+        :param refresh: Отправлять ли запрос на обновление accessToken
+        """
         endpoint = "users/refresh-token"
-        response = self._request("POST", endpoint)
+        response = self._request("POST", endpoint, refresh)
         if response.status_code == 200:
             refresh_data = RefreshTokenResponse.model_validate(response.json())
             self.session.headers.update({"Authorization": f"Bearer {refresh_data.data.access_token}"})
