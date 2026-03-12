@@ -1,6 +1,8 @@
 import json
 
+import allure
 import requests
+from pydantic import BaseModel
 from requests import Response
 
 from config import settings
@@ -77,3 +79,25 @@ class BaseClient:
         else:
             logger.error("Не удалось обновить accessToken")
             raise Exception("Токен не обновлён")
+
+    @staticmethod
+    def parse_response_body(response: Response, model: BaseModel):
+        """
+        Валидирует тело ответа под нужный модельный класс
+        :param response: Ответ от сервера
+        :param model: Модельный клас Pydantic
+        :return:
+        """
+        content_type = response.headers.get("Content-Type")
+        if "/json" not in content_type:
+            error_msg = f"Ожидался JSON, но пришел {content_type}. Тело: {response.text[:200]}"
+            logger.error(error_msg)
+            allure.attach(response.text[:200], name="Невалидный ответ", attachment_type=allure.attachment_type.TEXT)
+            raise AssertionError(error_msg)
+        try:
+            body = model.model_validate(response.json())
+        except Exception as e:
+            logger.error(e)
+            allure.attach(json.dumps(response.json(), indent=2))
+            raise e
+        return body
