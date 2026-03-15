@@ -1,34 +1,54 @@
-
-from client.user_client import UserClient
-from models.Users.user_logout_response import UserLogoutResponse
-from tests.conftest import test_user
-from utils.support import check_status_code, compare_value
 import allure
 
+from allure import step
+
+from models.Users.user_logout_response import UserLogoutResponse
+from tests.conftest import logged_in_user_client
+from utils.support import check_status_code, compare_value
 
 
+@allure.epic("Тестирование сервиса freeapi")
+@allure.feature("Тесты /users")
 class TestUsers:
 
     @allure.story("Регистрация нового пользователя - успешно")
-    def test_register_new_user_test_success(self, test_user):
-        new_user = test_user
-        client = UserClient()
-        response = client.register(body=new_user)
-        check_status_code(response.status_code, 200)
-        user = {"password": new_user.password, "username": new_user.username}
-        response = client.auth(user)
-        check_status_code(response.status_code, 200)
-        compare_value("Сообщение", response.message, 'User logged in successfully')
+    def test_register_new_user_test_success(self, user_client, db_client, fresh_user):
+        with step("Отправка запроса на регистрацию"):
+            response = user_client.register(body=fresh_user)
+        with step("Проверка ответа"):
+            check_status_code(response.status_code, 200)
+            compare_value(
+                "Сообщение",
+                response.message,
+                'Users registered successfully and verification email has been sent on your email.'
+            )
+            user = db_client.get_user(fresh_user.username)
+            compare_value("username", user.get("username"), fresh_user.username)
+            compare_value("email", user.get("email"), fresh_user.email)
 
-    def test_user_logout_success(self, user_client):
-        response = user_client.logout()
-        check_status_code(response.status_code, 200)
-        data = UserLogoutResponse.model_validate(response.json())
-        compare_value("Сообщение", data.message, "User logged out")
+    @allure.story("Логин пользователя - успешно")
+    def test_user_login_success(self, user_client, registered_user):
+        username, password = registered_user.username, registered_user.password
+        with step("Отправка запроса на авторизацию"):
+            response = user_client.auth({"username": username, "password": password})
+        with step("Проверка ответа"):
+            check_status_code(response.status_code, 200)
+            compare_value("Сообщение", response.message, "User logged in successfully")
 
-    def test_user_logout_negative(self):
-        client = UserClient()
-        response = client.logout()
-        check_status_code(response.status_code, 401)
-        message = response.json().get("message")
-        compare_value("Сообщение", message, "Unauthorized request")
+    @allure.story("Логаут пользователя - успешно")
+    def test_user_logout_success(self, logged_in_user_client):
+        with step("Отправка запроса на логаут"):
+            response = logged_in_user_client.logout()
+        with step("Проверка ответа"):
+            check_status_code(response.status_code, 200)
+            data = logged_in_user_client.parse_response_body(response, UserLogoutResponse)
+            compare_value("Сообщение", data.message, "User logged out")
+
+    @allure.story("Логаут пользователя - негативный")
+    def test_user_logout_negative(self, user_client):
+        with step("Отправка запроса на логаут"):
+            response = user_client.logout()
+        with step("Проверка ответа"):
+            check_status_code(response.status_code, 401)
+            message = response.json().get("message")
+            compare_value("Сообщение", message, "Unauthorized request")

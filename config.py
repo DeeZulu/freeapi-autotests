@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     password: str
     service_username: str
     service_password: str
+    service_email: str
     model_config = SettingsConfigDict(env_file=env_path)
 
 settings = Settings()  # noqa
