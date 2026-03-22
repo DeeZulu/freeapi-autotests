@@ -3,8 +3,10 @@ from time import time
 from pytest import fixture
 
 from client.db_client import DbClient
+from client.ecommerce_client import EcommerceClient
 from client.user_client import UserClient
 from config import settings
+from models.Users.user_login_response import UserLoginResponse
 from models.Users.user_register_request import UserRegisterRequest
 
 
@@ -15,6 +17,13 @@ def user_client():
     yield client
     client.session.close()
 
+
+@fixture(scope="function")
+def ecommerce_client():
+    """Клиент для запросов /ecommerce"""
+    client = EcommerceClient()
+    yield client
+    client.session.close()
 
 @fixture(scope="function")
 def db_client():
@@ -43,7 +52,7 @@ def auth_client():
     client = UserClient()
     username, password = settings.service_username, settings.service_password
     user = {"password": password, "username": username}
-    response = client.auth(user)
+    response = client.auth(user, validate=False)
     if response.status_code == 404:
         service_user = UserRegisterRequest(
             email=settings.service_email,
@@ -54,7 +63,19 @@ def auth_client():
         response = client.register(service_user)
         assert response.status_code == 200, "Не удалось зарегистрировать технического пользователя"
         client.auth(user)
-    return client
+    elif response.status_code == 200:
+        data = UserLoginResponse.model_validate(response.json())
+        client.session.headers.update({"Authorization": f"Bearer {data.data.access_token}"})
+    yield client
+    client.session.close()
+
+
+@fixture(scope="session")
+def ecommerce_auth_client(auth_client):
+    """Авторизованный Ecommerce клиент"""
+    ecom_client = EcommerceClient()
+    ecom_client.session = auth_client.session
+    return ecom_client
 
 
 @fixture(scope="class")
