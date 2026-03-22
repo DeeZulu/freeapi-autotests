@@ -1,7 +1,6 @@
 from requests.models import Response
 
 from client.base_client import BaseClient
-from models.Users.user_logout_response import UserLogoutResponse
 from models.Users.user_register_request import UserRegisterRequest
 from models.Users.user_register_response import UserRegisterResponse
 
@@ -44,4 +43,3 @@ class UserClient(BaseClient):
         """
         endpoint = f"{self.user_path}/verify-email/{verification_token}"
         return self._request("GET", endpoint, refresh)
-
