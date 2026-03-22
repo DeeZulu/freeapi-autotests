@@ -52,14 +52,17 @@ class BaseClient:
             logger.error(e)
             raise e
 
-    def auth(self, body: dict, refresh=True) -> UserLoginResponse:
+    def auth(self, body: dict, validate=True, refresh=True) -> Response | UserLoginResponse:
         """
         Авторизует пользователя c сохранением токен в сессию
         :param body: Креды пользователя
+        :param validate: Проверять ли статус код ответа
         :param refresh: Отправлять ли запрос на обновление accessToken
         :return: словарь с ответом от сервиса
         """
         response = self._request("POST", "users/login", refresh, json=body)
+        if not validate:
+            return response
         check_status_code(response.status_code, 200)
         login_data = UserLoginResponse.model_validate(response.json())
         access_token = login_data.data.access_token
