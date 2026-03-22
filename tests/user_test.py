@@ -1,17 +1,16 @@
-import allure
+from allure import epic, feature, story, step
 
-from allure import step
 
 from models.Users.user_logout_response import UserLogoutResponse
 from tests.conftest import logged_in_user_client
 from utils.support import check_status_code, compare_value
 
 
-@allure.epic("Тестирование сервиса freeapi")
-@allure.feature("Тесты /users")
+@epic("Тестирование сервиса freeapi")
+@feature("Тесты /users")
 class TestUsers:
 
-    @allure.story("Регистрация нового пользователя - успешно")
+    @story("Регистрация нового пользователя - успешно")
     def test_register_new_user_test_success(self, user_client, db_client, fresh_user):
         with step("Отправка запроса на регистрацию"):
             response = user_client.register(body=fresh_user)
@@ -26,7 +25,7 @@ class TestUsers:
             compare_value("username", user.get("username"), fresh_user.username)
             compare_value("email", user.get("email"), fresh_user.email)
 
-    @allure.story("Логин пользователя - успешно")
+    @story("Логин пользователя - успешно")
     def test_user_login_success(self, user_client, registered_user):
         username, password = registered_user.username, registered_user.password
         with step("Отправка запроса на авторизацию"):
@@ -35,7 +34,7 @@ class TestUsers:
             check_status_code(response.status_code, 200)
             compare_value("Сообщение", response.message, "User logged in successfully")
 
-    @allure.story("Логаут пользователя - успешно")
+    @story("Логаут пользователя - успешно")
     def test_user_logout_success(self, logged_in_user_client):
         with step("Отправка запроса на логаут"):
             response = logged_in_user_client.logout()
@@ -44,7 +43,7 @@ class TestUsers:
             data = logged_in_user_client.parse_response_body(response, UserLogoutResponse)
             compare_value("Сообщение", data.message, "User logged out")
 
-    @allure.story("Логаут пользователя - негативный")
+    @story("Логаут пользователя - негативный")
     def test_user_logout_negative(self, user_client):
         with step("Отправка запроса на логаут"):
             response = user_client.logout()
