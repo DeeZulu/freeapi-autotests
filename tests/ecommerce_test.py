@@ -1,3 +1,4 @@
+from models.Ecommerce.get_all_products_response import GetAllProductsResponse
 from models.Ecommerce.get_profile_response import GetProfileResponse
 from models.Ecommerce.update_profile_request import UpdateProfileRequest
 from models.Ecommerce.update_profile_response import UpdateProfileResponse
@@ -10,21 +11,21 @@ from allure import step, epic, feature, story
 class TestEcommerce:
 
     @story("Получение информации о профиле")
-    def test_get_my_profile(self, ecommerce_auth_client):
+    def test_get_my_profile_success(self, ecommerce_auth_client):
         with step("Запрос информации о профиле"):
             response = ecommerce_auth_client.get_profile()
         with step("Проверка ответа"):
-            check_status_code(response.status_code, 200)
+            check_status_code(response, 200)
             data = ecommerce_auth_client.parse_response_body(response, GetProfileResponse)
             compare_value("Сообщение", data.message, "User profile fetched successfully")
 
     @story("Редактирование информаци о профиле")
-    def test_update_profile(self, ecommerce_auth_client):
+    def test_update_first_and_last_name_success(self, ecommerce_auth_client):
         with step("Запрос на редактирование информации о профиле"):
             profile = UpdateProfileRequest(firstName="Dennis", lastName="Zalutskiy")
             response = ecommerce_auth_client.update_profile(body=profile)
         with step("Проверка ответа от сервера"):
-            check_status_code(response.status_code, 200)
+            check_status_code(response, 200)
             update_profile_data = ecommerce_auth_client.parse_response_body(response, UpdateProfileResponse)
             compare_value(
                 "Сообщение",
@@ -37,3 +38,14 @@ class TestEcommerce:
             )
             compare_value("Обновлённая фамилия", get_profile_data.data.last_name, profile.last_name)
             compare_value("Обновлённое имя", get_profile_data.data.first_name, profile.first_name)
+
+    @story("Получение списка всех продуктов")
+    def test_get_all_products_success(self, ecommerce_auth_client):
+        with step("Запрос списка всех продуктов"):
+            page_number, products_limit = 2, 5
+            response = ecommerce_auth_client.get_all_products(page_number, products_limit)
+        with step("Проверка ответа с продуктами"):
+            check_status_code(response, 200)
+            products_data = ecommerce_auth_client.parse_response_body(response, GetAllProductsResponse)
+            compare_value("Сообщение", products_data.message, 'Products fetched successfully')
+            compare_value("Количество страниц", products_data.data.page, page_number)

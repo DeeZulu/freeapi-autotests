@@ -23,3 +23,18 @@ class EcommerceClient(BaseClient):
             refresh=True
         )
         return response
+
+    def get_all_products(self, page_number: int, products_limit: int):
+        """
+        Получение всех продуктов
+        :param page_number Номер страницы с продуктами
+        :param products_limit Количество продуктов
+        """
+        endpoint = f"{self.path}/products"
+        response = self._request(
+            "GET",
+            endpoint,
+            refresh=True,
+            params={"page": page_number, "limit": products_limit}
+        )
+        return response

@@ -15,7 +15,7 @@ class TestUsers:
         with step("Отправка запроса на регистрацию"):
             response = user_client.register(body=fresh_user)
         with step("Проверка ответа"):
-            check_status_code(response.status_code, 200)
+            check_status_code(response, 200)
             compare_value(
                 "Сообщение",
                 response.message,
@@ -31,7 +31,7 @@ class TestUsers:
         with step("Отправка запроса на авторизацию"):
             response = user_client.auth({"username": username, "password": password})
         with step("Проверка ответа"):
-            check_status_code(response.status_code, 200)
+            check_status_code(response, 200)
             compare_value("Сообщение", response.message, "User logged in successfully")
 
     @story("Логаут пользователя - успешно")
@@ -39,7 +39,7 @@ class TestUsers:
         with step("Отправка запроса на логаут"):
             response = logged_in_user_client.logout()
         with step("Проверка ответа"):
-            check_status_code(response.status_code, 200)
+            check_status_code(response, 200)
             data = logged_in_user_client.parse_response_body(response, UserLogoutResponse)
             compare_value("Сообщение", data.message, "User logged out")
 
@@ -48,6 +48,6 @@ class TestUsers:
         with step("Отправка запроса на логаут"):
             response = user_client.logout()
         with step("Проверка ответа"):
-            check_status_code(response.status_code, 401)
+            check_status_code(response, 401)
             message = response.json().get("message")
             compare_value("Сообщение", message, "Unauthorized request")

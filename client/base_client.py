@@ -21,6 +21,8 @@ class BaseClient:
         """
         Общий метод HTTP запроса
         :param method: Метод HTTP запроса
+        :param endpoint: Ендпоинт запроса
+        :param refresh: Стоит ли отправлять запрос на обновление токена
         :return: Объект Response
         """
         if not endpoint.startswith("/"):
@@ -63,7 +65,7 @@ class BaseClient:
         response = self._request("POST", "users/login", refresh, json=body)
         if not validate:
             return response
-        check_status_code(response.status_code, 200)
+        check_status_code(response, 200)
         login_data = UserLoginResponse.model_validate(response.json())
         access_token = login_data.data.access_token
         self.session.headers.update({"Authorization": f"Bearer {access_token}"})

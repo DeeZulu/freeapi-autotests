@@ -1,16 +1,20 @@
 from typing import Any
 
+from requests.models import Response
+
 from client.db_client import DbClient
 
 
-def check_status_code(actual_code: int, expected_code: int):
+def check_status_code(response: Response, expected_code: int):
     """
     Проверка статус кода HTTP ответа
-    :param actual_code: Полученный статус код
+    :param response: Ответ от сервиса
     :param expected_code: Ожидаемый статус код
     """
+    actual_code = response.status_code
     assert actual_code == expected_code, f"Получен неправильный статус код - {actual_code}\n" \
-                                         f"Ожидался - {expected_code}"
+                                         f"Ожидался - {expected_code}\n" \
+                                         f"Тело ответа: {response.text}"
 
 
 def compare_value(value_name: str, actual_value: Any, expected_value: Any):
