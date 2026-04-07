@@ -1,8 +1,10 @@
+from models.Ecommerce.create_product_request import CreateProductRequest
 from models.Ecommerce.get_all_products_response import GetAllProductsResponse
 from models.Ecommerce.get_profile_response import GetProfileResponse
 from models.Ecommerce.update_profile_request import UpdateProfileRequest
 from models.Ecommerce.update_profile_response import UpdateProfileResponse
-from utils.support import check_status_code, compare_value
+from utils.faker import FakeGenerator
+from utils.support import check_status_code, compare_values
 from allure import step, epic, feature, story
 
 
@@ -10,36 +12,33 @@ from allure import step, epic, feature, story
 @feature("Тесты для /ecommerce")
 class TestEcommerce:
 
-    @story("Получение информации о профиле")
+    @story("Получение информации о профиле - успешно")
     def test_get_my_profile_success(self, ecommerce_auth_client):
         with step("Запрос информации о профиле"):
             response = ecommerce_auth_client.get_profile()
         with step("Проверка ответа"):
             check_status_code(response, 200)
             data = ecommerce_auth_client.parse_response_body(response, GetProfileResponse)
-            compare_value("Сообщение", data.message, "User profile fetched successfully")
+            compare_values("Сообщение", data.message, "User profile fetched successfully")
 
-    @story("Редактирование информаци о профиле")
+    @story("Редактирование информации о профиле - успешно")
     def test_update_first_and_last_name_success(self, ecommerce_auth_client):
         with step("Запрос на редактирование информации о профиле"):
-            profile = UpdateProfileRequest(firstName="Dennis", lastName="Zalutskiy")
+            profile = UpdateProfileRequest(first_name="Dennis", last_name="Zalutskiy")
             response = ecommerce_auth_client.update_profile(body=profile)
         with step("Проверка ответа от сервера"):
             check_status_code(response, 200)
             update_profile_data = ecommerce_auth_client.parse_response_body(response, UpdateProfileResponse)
-            compare_value(
-                "Сообщение",
-                update_profile_data.message,
-                'User profile updated successfully')
+            compare_values("Сообщение", update_profile_data.message, 'User profile updated successfully')
         with step("Проверка обновления клиента"):
             get_profile_data = ecommerce_auth_client.parse_response_body(
                 ecommerce_auth_client.get_profile(),
                 GetProfileResponse
             )
-            compare_value("Обновлённая фамилия", get_profile_data.data.last_name, profile.last_name)
-            compare_value("Обновлённое имя", get_profile_data.data.first_name, profile.first_name)
+            compare_values("Обновлённая фамилия", get_profile_data.data.last_name, profile.last_name)
+            compare_values("Обновлённое имя", get_profile_data.data.first_name, profile.first_name)
 
-    @story("Получение списка всех продуктов")
+    @story("Получение списка всех продуктов - успешно")
     def test_get_all_products_success(self, ecommerce_auth_client):
         with step("Запрос списка всех продуктов"):
             page_number, products_limit = 2, 5
@@ -47,5 +46,20 @@ class TestEcommerce:
         with step("Проверка ответа с продуктами"):
             check_status_code(response, 200)
             products_data = ecommerce_auth_client.parse_response_body(response, GetAllProductsResponse)
-            compare_value("Сообщение", products_data.message, 'Products fetched successfully')
-            compare_value("Количество страниц", products_data.data.page, page_number)
+            compare_values("Сообщение", products_data.message, 'Products fetched successfully')
+            compare_values("Количество страниц", products_data.data.page, page_number)
+
+    @story("Создание продукта - успешно")
+    def test_create_product_success(self, ecommerce_auth_client):
+        with step("Отправка запроса на создание продукта"):
+            resp = ecommerce_auth_client.get_categories(1, 5)
+            product = CreateProductRequest(
+                category="",
+                description="The latest smartphone by Apple",
+                main_image="",
+                name="iPhone 17 Pro",
+                price="1000",
+                stock="3",
+                sub_images=["", ""]
+            )
+            response = ecommerce_auth_client.create_product(body=product)

@@ -1,4 +1,6 @@
 from pymongo import MongoClient
+from pymongo.results import DeleteResult
+
 from config import settings
 
 
@@ -15,7 +17,7 @@ class DbClient:
         """
         return list(self.db.users.find({}))
 
-    def delete_user(self, username: str):
+    def delete_user(self, username: str) -> DeleteResult:
         """
         Удаление пользователя
         :param username
@@ -29,3 +31,17 @@ class DbClient:
         :return Пользователь
         """
         return self.db.users.find_one({"username": username})
+
+    def get_category(self, category_id: str):
+        """
+        Получение категории по ID
+        :return Категория продуктов
+        """
+        return self.db.categories.find_one({"_id": category_id})
+
+    def delete_category(self, category_id: str) -> DeleteResult:
+        """
+        Удаление пользователя
+        :param category_id: ID категории продуктов
+        """
+        return self.db.users.delete_one({"_id": category_id})

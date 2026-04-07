@@ -17,7 +17,7 @@ def check_status_code(response: Response, expected_code: int):
                                          f"Тело ответа: {response.text}"
 
 
-def compare_value(value_name: str, actual_value: Any, expected_value: Any):
+def compare_values(value_name: str, actual_value: Any, expected_value: Any):
     """
     Сравнение полученного значения с ожидаемым
     :param value_name: Название значения

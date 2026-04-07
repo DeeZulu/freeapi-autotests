@@ -8,6 +8,7 @@ from client.user_client import UserClient
 from config import settings
 from models.Users.user_login_response import UserLoginResponse
 from models.Users.user_register_request import UserRegisterRequest
+from utils.faker import FakeGenerator
 
 
 @fixture(scope="function")
@@ -15,7 +16,7 @@ def user_client():
     """Клиент для запросов /users"""
     client = UserClient()
     yield client
-    client.session.close()
+    client.client.close()
 
 
 @fixture(scope="function")
@@ -23,7 +24,7 @@ def ecommerce_client():
     """Клиент для запросов /ecommerce"""
     client = EcommerceClient()
     yield client
-    client.session.close()
+    client.client.close()
 
 @fixture(scope="function")
 def db_client():
@@ -65,17 +66,21 @@ def auth_client():
         client.auth(user)
     elif response.status_code == 200:
         data = UserLoginResponse.model_validate(response.json())
-        client.session.headers.update({"Authorization": f"Bearer {data.data.access_token}"})
+        client.client.headers.update({"Authorization": f"Bearer {data.data.access_token}"})
     yield client
-    client.session.close()
+    client.client.close()
 
 
 @fixture(scope="session")
 def ecommerce_auth_client(auth_client):
     """Авторизованный Ecommerce клиент"""
     ecom_client = EcommerceClient()
-    ecom_client.session = auth_client.session
-    return ecom_client
+    token = auth_client.client.headers.get("Authorization")
+    if not token:
+        raise AssertionError("Токен авторизации отсутствует")
+    ecom_client.client.headers["Authorization"] = token
+    yield ecom_client
+    ecom_client.client.close()
 
 
 @fixture(scope="class")
@@ -106,3 +111,25 @@ def logged_in_user_client(registered_user):
     client.auth({"password": registered_user.password,
                  "username": registered_user.username})
     return client
+
+
+@fixture(scope="function")
+def clear_category(db_client, request):
+    """
+    Удаляет созданные категории после теста
+    :param db_client: MongoDB клиент
+    :param request: Специальный объект Pytest
+    """
+    request.node.ids_to_delete = []
+    yield
+    for cat_id in request.node.ids_to_delete:
+        db_client.delete_category(cat_id)
+
+
+@fixture(scope="function")
+def create_category(ecommerce_auth_client):
+    """Создаёт новую категорию продуктов"""
+    new_category = {"name": FakeGenerator.get_ecommerce_category()}
+    response = ecommerce_auth_client.create_category(new_category)
+    category_id = response.json()["data"]["_id"]
+    return category_id
