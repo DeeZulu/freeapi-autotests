@@ -1,7 +1,7 @@
 import json
 
 import allure
-import requests
+import httpx
 from pydantic import BaseModel
 from requests import Response
 
@@ -14,7 +14,7 @@ from utils.support import check_status_code
 
 class BaseClient:
     def __init__(self):
-        self.session = requests.session()
+        self.client = httpx.Client()
         self.base_url = settings.base_url.rstrip("/")
 
     def _request(self, method: str, endpoint: str, refresh: bool, **kwargs) -> Response:
@@ -35,11 +35,11 @@ class BaseClient:
         if kwargs.get("params"):
             logger.info(f"Params: {kwargs['params']}")
         try:
-            response = self.session.request(method, url, **kwargs)
+            response = self.client.request(method, url, **kwargs)
             if response.status_code == 401 and refresh and "/refresh-token" not in endpoint:
                 logger.warning("AccessToken истёк")
                 self.refresh_token()
-                response = self.session.request(method, url, **kwargs)
+                response = self.client.request(method, url, **kwargs)
             logger.info(f"<-- Status: {response.status_code}")
             content_type = response.headers.get("Content-Type", "")
 
@@ -68,7 +68,7 @@ class BaseClient:
         check_status_code(response, 200)
         login_data = UserLoginResponse.model_validate(response.json())
         access_token = login_data.data.access_token
-        self.session.headers.update({"Authorization": f"Bearer {access_token}"})
+        self.client.headers.update({"Authorization": f"Bearer {access_token}"})
         return login_data
 
     def refresh_token(self, refresh=True):
@@ -80,7 +80,7 @@ class BaseClient:
         response = self._request("POST", endpoint, refresh)
         if response.status_code == 200:
             refresh_data = RefreshTokenResponse.model_validate(response.json())
-            self.session.headers.update({"Authorization": f"Bearer {refresh_data.data.access_token}"})
+            self.client.headers.update({"Authorization": f"Bearer {refresh_data.data.access_token}"})
         else:
             logger.error("Не удалось обновить accessToken")
             raise Exception("Токен не обновлён")
