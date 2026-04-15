@@ -102,7 +102,7 @@ class BaseClient:
         try:
             body = model.model_validate(response.json())
         except Exception as e:
-            logger.error(e)
+            logger.error(f"Ошибка валидации Pydantic: {e}")
             allure.attach(json.dumps(response.json(), indent=2))
             raise e
         return body
