@@ -14,8 +14,8 @@ class TestCategories:
     @story("Создание категории продуктов - успешно")
     def test_create_category_success(self, ecommerce_auth_client, clear_category, request):
         with step("Оправка запроса на создание категории"):
-            new_category = {"name": FakeGenerator.get_ecommerce_category()}
-            response = ecommerce_auth_client.create_category(new_category)
+            category_name = {"name": FakeGenerator.get_ecommerce_category()}
+            response = ecommerce_auth_client.create_category(category_name)
         with step("Проверка создания категории"):
             check_status_code(response, 201)
             data = ecommerce_auth_client.parse_response_body(response, CreateCategoryResponse)
@@ -32,9 +32,9 @@ class TestCategories:
             check_status_code(response, 422)
 
     @story("Удаление категории - успешны")
-    def test_delete_category(self, ecommerce_auth_client, db_client, create_category):
+    def test_delete_category(self, ecommerce_auth_client, db_client, new_category):
         with step("Отправка запроса на удаление категории"):
-            category_id = create_category
+            category_id = new_category["data"]["_id"]
             response = ecommerce_auth_client.delete_category(category_id)
         with step("Проверка удаления категории"):
             check_status_code(response, 200)
