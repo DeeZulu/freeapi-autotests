@@ -63,6 +63,12 @@ class EcommerceClient(BaseClient):
         )
         return response
 
+    def delete_product(self, product_id: str):
+        """Удаление продукта"""
+        endpoint = f"{self.path}/products/{product_id}"
+        response = self._request("DELETE", endpoint, refresh=True)
+        return response
+
     def get_categories(self, page_number: int, products_limit: int) -> Response:
         """
         Получение категорий товаров
