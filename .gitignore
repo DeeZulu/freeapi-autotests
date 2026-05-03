@@ -207,4 +207,4 @@ marimo/_lsp/
 __marimo__/
 
 # Allure
-.allure-results/
+allure-results/

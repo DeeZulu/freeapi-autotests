@@ -47,9 +47,10 @@ class EcommerceClient(BaseClient):
         )
         return response
 
-    def create_product(self, body: CreateProductRequest) -> Response | CreateProductResponse:
+    def create_product(self, body: CreateProductRequest, file: dict) -> Response:
         """
         Создание продукта
+        :param file Файл для главного изображения продукта
         :param body Тело запроса
         """
         endpoint = f"{self.path}/products"
@@ -57,7 +58,8 @@ class EcommerceClient(BaseClient):
             "POST",
             endpoint,
             refresh=True,
-            json=body.model_dump(by_alias=True)
+            data=body.model_dump(by_alias=True, exclude={"main_image"}),
+            files=file
         )
         return response
 

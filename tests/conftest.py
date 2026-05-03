@@ -1,3 +1,5 @@
+import os
+from pathlib import Path
 from time import time
 
 from pytest import fixture
@@ -6,10 +8,12 @@ from client.db_client import DbClient
 from client.ecommerce_client import EcommerceClient
 from client.user_client import UserClient
 from config import settings
+from models.Ecommerce.create_product_request import CreateProductRequest
 from models.Users.user_login_response import UserLoginResponse
 from models.Users.user_register_request import UserRegisterRequest
 from utils.faker import FakeGenerator
 
+BASE_DIR = Path(__file__).resolve().parent.parent
 
 @fixture(scope="function")
 def user_client():
@@ -25,6 +29,7 @@ def ecommerce_client():
     client = EcommerceClient()
     yield client
     client.client.close()
+
 
 @fixture(scope="function")
 def db_client():
@@ -46,6 +51,7 @@ def fresh_user():
     yield user
     mongo_client = DbClient()
     mongo_client.delete_user(user.username)
+
 
 @fixture(scope="session")
 def auth_client():
@@ -127,9 +133,41 @@ def clear_category(db_client, request):
 
 
 @fixture(scope="function")
-def create_category(ecommerce_auth_client):
+def new_category(ecommerce_auth_client):
     """Создаёт новую категорию продуктов"""
     new_category = {"name": FakeGenerator.get_ecommerce_category()}
     response = ecommerce_auth_client.create_category(new_category)
-    category_id = response.json()["data"]["_id"]
-    return category_id
+    return response.json()
+
+
+@fixture(scope="function")
+def new_product_with_cleanup(request, new_category, ecommerce_auth_client, db_client):
+    """Подготовка продукта для запроса на создание и дальнейшее удаление"""
+    product_ids = []
+    category_id = new_category["data"]["_id"]
+    category_name = new_category["data"]["name"]
+    new_product = CreateProductRequest(
+        category=category_id,
+        description=FakeGenerator.get_product_description(category_name),
+        main_image="images/samsung.png",
+        name=FakeGenerator.get_product_name(category_name),
+        price="1000",
+        stock="5",
+        sub_images=[]
+    )
+
+    def _create():
+        image_path = BASE_DIR / "images" / "samsung.png"
+        with open(image_path, "rb") as image:
+            file = {
+                "mainImage": (os.path.basename(image_path), image, "image/png")
+            }
+            response = ecommerce_auth_client.create_product(new_product, file)
+            if response.status_code == 201:
+                product_id = response.json()["data"]["_id"]
+                product_ids.append(product_id)
+            return response
+    yield _create
+
+    for p_id in product_ids:
+        db_client.delete_product(p_id)

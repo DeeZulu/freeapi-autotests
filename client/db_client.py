@@ -1,3 +1,4 @@
+from bson import ObjectId
 from pymongo import MongoClient
 from pymongo.results import DeleteResult
 
@@ -45,3 +46,19 @@ class DbClient:
         :param category_id: ID категории продуктов
         """
         return self.db.users.delete_one({"_id": category_id})
+
+    def get_product(self, product_id: str) -> str:
+        """
+        Получение продукта по ID
+        :param product_id: ID продукта
+        :return: Запись с продуктом
+        """
+        return self.db.products.find_one({"_id": ObjectId(product_id)})
+
+    def delete_product(self, product_id: str) -> DeleteResult:
+        """
+        Удаление продукта по ID
+        :param product_id: ID продукта
+        :return: Результат удаления продукта
+        """
+        return self.db.products.delete_one({"_id": ObjectId(product_id)})

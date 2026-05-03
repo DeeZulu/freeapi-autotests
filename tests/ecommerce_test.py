@@ -1,11 +1,12 @@
-from models.Ecommerce.create_product_request import CreateProductRequest
+from allure import step, epic, feature, story
+
+from models.Ecommerce.create_product_response import CreateProductResponse
 from models.Ecommerce.get_all_products_response import GetAllProductsResponse
 from models.Ecommerce.get_profile_response import GetProfileResponse
 from models.Ecommerce.update_profile_request import UpdateProfileRequest
 from models.Ecommerce.update_profile_response import UpdateProfileResponse
-from utils.faker import FakeGenerator
+from utils.assertions import check_product_exist
 from utils.support import check_status_code, compare_values
-from allure import step, epic, feature, story
 
 
 @epic("Тестирование сервиса freeapi")
@@ -50,16 +51,14 @@ class TestEcommerce:
             compare_values("Количество страниц", products_data.data.page, page_number)
 
     @story("Создание продукта - успешно")
-    def test_create_product_success(self, ecommerce_auth_client):
+    def test_create_product_success(self, db_client, ecommerce_auth_client, new_product_with_cleanup):
         with step("Отправка запроса на создание продукта"):
-            resp = ecommerce_auth_client.get_categories(1, 5)
-            product = CreateProductRequest(
-                category="",
-                description="The latest smartphone by Apple",
-                main_image="",
-                name="iPhone 17 Pro",
-                price="1000",
-                stock="3",
-                sub_images=["", ""]
-            )
-            response = ecommerce_auth_client.create_product(body=product)
+            response = new_product_with_cleanup()
+            product_id = response.json()["data"]["_id"]
+        with step("Проверка создания продукта"):
+            check_status_code(response, 201)
+            data = ecommerce_auth_client.parse_response_body(response, CreateProductResponse)
+            compare_values("Сообщение", data.message, "Product created successfully")
+            check_product_exist(db_client, product_id)
+
+
