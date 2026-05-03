@@ -2,7 +2,7 @@ from allure import story, step, feature, epic
 
 from models.Ecommerce.create_category_response import CreateCategoryResponse
 from models.Ecommerce.delete_category_response import DeleteCategoryResponse
-from utils.assertions import check_category_not_in_database
+from utils.assertions import check_category_not_exist
 from utils.faker import FakeGenerator
 from utils.support import check_status_code, compare_values
 
@@ -42,4 +42,4 @@ class TestCategories:
             compare_values("Сообщение", data.message, "Category deleted successfully")
             deleted_category_id = data.data.deleted_category.id
             compare_values("ID удаляемой категории", deleted_category_id, category_id)
-            check_category_not_in_database(db_client, deleted_category_id)
+            check_category_not_exist(db_client, deleted_category_id)
