@@ -22,12 +22,12 @@ jobs:
       - name: Start FreeAPI
         run: |
           cd freeapi-backend
-          # Создаем пустой .env, чтобы docker compose не ругался на отсутствие файла
-          touch .env 
+          touch .env
           docker compose up -d
-          # Ждем, пока база и сервер соберутся и стартанут
-          sleep 60 
+          echo "Waiting for services to start..."
+          sleep 90 # Увеличим до 90 секунд для надежности
           docker ps
+          docker compose logs backend | tail -n 50
 
       - name: Set up Python
         uses: actions/setup-python@v4
