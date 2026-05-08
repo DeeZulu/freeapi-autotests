@@ -2,7 +2,7 @@ name: API Tests
 
 on:
   push:
-    branches: ["master"]
+    branches: [ "master" ]
   workflow_dispatch:
 
 jobs:
@@ -22,11 +22,19 @@ jobs:
       - name: Start FreeAPI
         run: |
           cd freeapi-backend
-          touch .env
+          echo "MONGODB_URI=mongodb://mongodb:27017/freeapi" > .env
+          echo "PORT=8080" >> .env
+          echo "NODE_ENV=development" >> .env
+          echo "ACCESS_TOKEN_SECRET=secret_key_123" >> .env
+          echo "REFRESH_TOKEN_SECRET=secret_key_456" >> .env
+          echo "EXPRESS_SESSION_SECRET=secret_key_789" >> .env
+          echo "CORS_ORIGIN=*" >> .env
+          
           sudo chmod -R 777 .
+          
           docker compose up -d
           echo "Waiting for services to start..."
-          sleep 90 # Увеличим до 90 секунд для надежности
+          sleep 90
           docker ps
           docker compose logs backend | tail -n 50
 
@@ -43,7 +51,6 @@ jobs:
       - name: Run Pytest
         run: pytest
         env:
-            # Прокидываем все переменные для класса Settings
           BASE_URL: http://localhost:8080/api/v1
           DB_URL: mongodb://localhost:27017/
           USERNAME: test_user
