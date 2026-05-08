@@ -22,9 +22,9 @@ jobs:
       - name: Start FreeAPI
         run: |
           cd freeapi-backend
-          # Создаем пустой .env, чтобы docker-compose не ругался на отсутствие файла
+          # Создаем пустой .env, чтобы docker compose не ругался на отсутствие файла
           touch .env 
-          docker-compose up -d
+          docker compose up -d
           # Ждем, пока база и сервер соберутся и стартанут
           sleep 60 
           docker ps
