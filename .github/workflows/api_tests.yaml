@@ -23,6 +23,7 @@ jobs:
         run: |
           cd freeapi-backend
           touch .env
+          sudo chmod -R 777 .
           docker compose up -d
           echo "Waiting for services to start..."
           sleep 90 # Увеличим до 90 секунд для надежности
