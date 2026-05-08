@@ -22,7 +22,7 @@ jobs:
       - name: Start FreeAPI
         run: |
           cd freeapi-backend
-          echo "MONGODB_URI=mongodb://mongodb:27017/freeapi" > .env
+          echo 'MONGODB_URI="mongodb://mongodb:27017"' > .env
           echo "PORT=8080" >> .env
           echo "NODE_ENV=development" >> .env
           echo "ACCESS_TOKEN_SECRET=secret_key_123" >> .env
