@@ -1,0 +1,52 @@
+name: API Tests
+
+on:
+  push:
+    branches: ["master"]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout My Tests
+        uses: actions/checkout@v4
+
+      - name: Checkout FreeAPI Backend
+        uses: actions/checkout@v4
+        with:
+          repository: hiteshchoudhary/apihub
+          path: freeapi-backend
+
+      - name: Start FreeAPI
+        run: |
+          cd freeapi-backend
+          # Создаем пустой .env, чтобы docker-compose не ругался на отсутствие файла
+          touch .env 
+          docker-compose up -d
+          # Ждем, пока база и сервер соберутся и стартанут
+          sleep 60 
+          docker ps
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Pytest
+        run: pytest
+        env:
+            # Прокидываем все переменные для класса Settings
+          BASE_URL: http://localhost:8080/api/v1
+          DB_URL: mongodb://localhost:27017/
+          USERNAME: test_user
+          PASSWORD: strongPass123
+          SERVICE_USERNAME: service_user
+          SERVICE_PASSWORD: strongPass123
+          SERVICE_EMAIL: secret@test.com
