@@ -22,21 +22,24 @@ jobs:
       - name: Start FreeAPI
         run: |
           cd freeapi-backend
-          echo 'MONGODB_URI="mongodb://mongodb:27017"' > .env
-          echo "PORT=8080" >> .env
+          echo "PORT=8080" > .env
           echo "NODE_ENV=development" >> .env
-          echo "ACCESS_TOKEN_SECRET=secret_key_123" >> .env
-          echo "REFRESH_TOKEN_SECRET=secret_key_456" >> .env
-          echo "EXPRESS_SESSION_SECRET=secret_key_789" >> .env
+          echo "MONGODB_URI=mongodb://mongodb:27017/freeapi" >> .env
+          
+          # Секреты для JWT
+          echo "ACCESS_TOKEN_SECRET=super_secret_access_token_key_1234567890" >> .env
+          echo "ACCESS_TOKEN_EXPIRY=1d" >> .env
+          echo "REFRESH_TOKEN_SECRET=super_secret_refresh_token_key_0987654321" >> .env
+          echo "REFRESH_TOKEN_EXPIRY=10d" >> .env
+          
+          # Дополнительные секреты для сессий
+          echo "EXPRESS_SESSION_SECRET=session_secret_key" >> .env
           echo "CORS_ORIGIN=*" >> .env
           
           sudo chmod -R 777 .
-          
           docker compose up -d
-          echo "Waiting for services to start..."
           sleep 90
-          docker ps
-          docker compose logs backend | tail -n 50
+          docker compose logs backend | tail -n 20
 
       - name: Set up Python
         uses: actions/setup-python@v4
