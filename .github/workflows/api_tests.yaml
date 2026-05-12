@@ -23,7 +23,7 @@ jobs:
         run: |
           cd freeapi-backend
           # Чистая запись без внешних кавычек
-          echo MONGODB_URI=mongodb://mongodb:27017/freeapi > .env
+          echo MONGODB_URI=mongodb://mongodb:27017 > .env
           echo PORT=8080 >> .env
           echo NODE_ENV=development >> .env
           echo ACCESS_TOKEN_SECRET=super_secret_access_token_key_1234567890 >> .env
