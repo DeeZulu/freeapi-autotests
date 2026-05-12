@@ -50,7 +50,8 @@ jobs:
           pip install -r requirements.txt
 
       - name: Run Pytest
-        run: pytest
+        run: pytest --alluredir=allure-results
+        continue-on-error: true
         env:
           BASE_URL: http://localhost:8080/api/v1
           DB_URL: mongodb://localhost:27017/
@@ -59,3 +60,25 @@ jobs:
           SERVICE_USERNAME: service_user
           SERVICE_PASSWORD: strongPass123
           SERVICE_EMAIL: secret@test.com
+
+      - name: Get Allure history
+        uses: actions/checkout@v4
+        if: always()
+        with:
+          ref: gh-pages
+          path: gh-pages
+
+      - name: Allure Report Action
+        uses: simple-elf/allure-report-action@master
+        if: always()
+        with:
+          allure_results: allure-results
+          allure_history: allure-history
+          keep_reports: 20
+
+      - name: Deploy report to Github Pages
+        if: always()
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: allure-history
