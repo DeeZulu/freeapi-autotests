@@ -25,7 +25,6 @@ jobs:
       - name: Start FreeAPI
         run: |
           cd freeapi-backend
-          # Чистая запись без внешних кавычек
           echo MONGODB_URI=mongodb://mongodb:27017 > .env
           echo PORT=8080 >> .env
           echo NODE_ENV=development >> .env
@@ -58,11 +57,11 @@ jobs:
         env:
           BASE_URL: http://localhost:8080/api/v1
           DB_URL: mongodb://localhost:27017/
-          USERNAME: test_user
-          PASSWORD: strongPass123
-          SERVICE_USERNAME: service_user
-          SERVICE_PASSWORD: strongPass123
-          SERVICE_EMAIL: secret@test.com
+          USERNAME: ${{ secrets.USERNAME }}
+          PASSWORD: ${{ secrets.PASSWORD }}
+          SERVICE_USERNAME: ${{ secrets.SERVICE_USERNAME }}
+          SERVICE_PASSWORD: ${{ secrets.SERVICE_PASSWORD }}
+          SERVICE_EMAIL: ${{ secrets.SERVICE_EMAIL }}
 
       - name: Get Allure history
         uses: actions/checkout@v4
@@ -86,4 +85,3 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: allure-history
-          force_orphan: true
