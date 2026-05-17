@@ -66,9 +66,7 @@ jobs:
       - name: Install Allure CLI
         if: always()
         run: |
-          curl -o allure-2.24.0.tgz -L https://github.com/allure-framework/allure2/releases/tag/2.24.0
-          sudo tar -zxvf allure-2.24.0.tgz -C /opt/
-          sudo ln -s /opt/allure-2.24.0/bin/allure /usr/bin/allure
+          sudo npm install -g allure-commandline --unsafe-perm=true
           allure --version
 
       - name: Generate Allure Report
