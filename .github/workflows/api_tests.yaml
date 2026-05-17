@@ -63,17 +63,15 @@ jobs:
           SERVICE_PASSWORD: ${{ secrets.SERVICE_PASSWORD }}
           SERVICE_EMAIL: ${{ secrets.SERVICE_EMAIL }}
 
-      - name: Install Allure CLI
+      - name: Install Latest Allure CLI via NPM
         if: always()
         run: |
-          sudo npm install -g allure-commandline --unsafe-perm=true
+          sudo npm install -g allure-commandline@latest --unsafe-perm=true
           allure --version
-
-      - name: Generate Allure Report
+      - name: Generate Mono Allure Report
         if: always()
         run: |
           allure generate allure-results --clean --single-file -o allure-report
-
       - name: Deploy report to Github Pages
         if: always()
         uses: peaceiris/actions-gh-pages@v3
