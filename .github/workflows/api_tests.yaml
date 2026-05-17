@@ -66,7 +66,7 @@ jobs:
       - name: Install Allure CLI
         if: always()
         run: |
-          sudo wget https://github.com
+          curl -o allure-2.24.0.tgz -L https://github.com
           sudo tar -zxvf allure-2.24.0.tgz -C /opt/
           sudo ln -s /opt/allure-2.24.0/bin/allure /usr/bin/allure
           allure --version
@@ -82,3 +82,4 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: allure-report
+          force_orphan: true
