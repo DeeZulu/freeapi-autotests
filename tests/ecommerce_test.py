@@ -48,9 +48,9 @@ class TestEcommerce:
 
     @story("Получение списка всех продуктов - успешно")
     @pytest.mark.parametrize("page_number, products_limit", [(2, 5), (3, 10), (1, 1)])
-    def test_get_all_products_success(self, ecommerce_auth_client, page_number_and_products_limit):
+    def test_get_all_products_success(self, ecommerce_auth_client, page_number, products_limit):
         with step("Запрос списка всех продуктов"):
-            page_number, products_limit = page_number_and_products_limit
+            page_number, products_limit = page_number, products_limit
             response = ecommerce_auth_client.get_all_products(page_number, products_limit)
 
         with step("Проверка ответа с продуктами"):
