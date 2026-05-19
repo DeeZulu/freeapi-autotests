@@ -54,7 +54,7 @@ class TestEcommerce:
             response = ecommerce_auth_client.get_all_products(page_number, products_limit)
 
         with step("Проверка ответа с продуктами"):
-            check_status_code(response, 400)
+            check_status_code(response, 200)
             products_data = ecommerce_auth_client.parse_response_body(response, GetAllProductsResponse)
             compare_values("Сообщение", products_data.message, 'Products fetched successfully')
             compare_values("Количество страниц", products_data.data.page, page_number)
